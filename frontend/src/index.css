@@ -1,0 +1,77 @@
+:root {
+  font-family: "Space Grotesk", "Noto Sans", system-ui, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light;
+  color: #0f172a;
+  background-color: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #e2e8f0 0%, #f8fafc 50%, #ffffff 100%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 64px 24px 96px;
+  display: grid;
+  gap: 32px;
+}
+
+.hero {
+  display: grid;
+  gap: 12px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-size: 12px;
+  margin: 0;
+  color: #64748b;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 2.8vw, 3.2rem);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  margin: 0;
+  color: #475569;
+  max-width: 560px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px 28px;
+  box-shadow: 0 20px 50px -35px rgba(15, 23, 42, 0.45);
+  border: 1px solid #e2e8f0;
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+ul {
+  padding-left: 18px;
+  margin: 0;
+  color: #334155;
+}
+
+code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.95em;
+}
