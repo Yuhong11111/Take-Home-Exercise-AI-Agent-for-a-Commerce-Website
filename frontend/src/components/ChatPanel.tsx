@@ -8,6 +8,11 @@ type ChatPanelProps = {
   onClose?: () => void
 }
 
+function getMessages(messages: Message[]): Message[] {
+  const contextMessages = messages.slice(-10) // Keep last 10 messages for context
+  return contextMessages
+}
+
 export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -18,6 +23,7 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
   ])
   const [input, setInput] = useState('')
   const chatBodyRef = useRef<HTMLDivElement | null>(null)
+  const latestRequestId = useRef(0)
 
   useEffect(() => {
     const el = chatBodyRef.current
@@ -28,25 +34,33 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
   async function sendMessage() {
     if (!input.trim()) return
 
+    const userMessage = { role: 'user' as const, content: input.trim() }
+    // add user message to state immediately for responsiveness
+    const updateMessages = [...messages, userMessage]
+    setMessages((prev) => [...prev, userMessage])
+
     // Add user message
-    const newMessages = [
-      ...messages,
-      { role: 'user' as const, content: input }
-    ]
-    setMessages(newMessages)
+
     setInput('')
+
+    const requestId = ++latestRequestId.current
 
     // Send to backend
     try {
       const res = await axios.post('http://localhost:8000/chat', {
-        messages: newMessages
+        messages: getMessages(updateMessages)
       })
       const data = res.data
-      console.log('Chat response:', data)
-      setMessages([...newMessages, { role: 'ai' as const, content: data.reply }])
+      // console.log('Chat response:', data)
+      if (requestId !== latestRequestId.current) return
+      setMessages((prev) => [...prev, { role: 'ai' as const, content: data.reply }])
     } catch (err) {
-      console.error('Chat error:', err)
-      setMessages([...newMessages, { role: 'ai' as const, content: 'Sorry, something went wrong.' }])
+      // console.error('Chat error:', err)
+      if (requestId !== latestRequestId.current) return
+      setMessages((prev) => [
+        ...prev,
+        { role: 'ai' as const, content: 'Sorry, something went wrong.' }
+      ])
     }
   }
   return (
@@ -73,7 +87,13 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
         ))}
       </div>
 
-      <form className="chat-footer">
+      <form
+        className="chat-footer"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void sendMessage()
+        }}
+      >
         <input
           type="text"
           placeholder="Search or ask a question..."
@@ -81,7 +101,7 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
-        <button type="button" className="chat-send" onClick={sendMessage}>
+        <button type="submit" className="chat-send">
           Send
         </button>
       </form>
