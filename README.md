@@ -9,6 +9,7 @@ npm install
 npm run dev
 ```
 Frontend runs at `http://localhost:5173`.
+If you prefer `npm start`, add it to `frontend/package.json` or use `npm run dev`.
 
 ### Backend (FastAPI)
 ```bash

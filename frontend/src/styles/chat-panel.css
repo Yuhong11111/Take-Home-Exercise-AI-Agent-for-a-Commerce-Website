@@ -53,15 +53,20 @@
 
 .chat-body {
   padding: 20px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
+  align-items: flex-start;
 }
 
 .chat-bubble {
-  max-width: 70%;
+  max-width: 60%;
   padding: 12px 14px;
   border-radius: 14px;
   font-size: 14px;
+  width: fit-content;
+  display: inline-flex;
+  align-self: flex-start;
 }
 
 .chat-bubble--ai {
@@ -70,7 +75,7 @@
 }
 
 .chat-bubble--user {
-  margin-left: auto;
+  align-self: flex-end;
   background: #0f172a;
   color: #fff;
 }
