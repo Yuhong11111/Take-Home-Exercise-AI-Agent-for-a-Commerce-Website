@@ -1,5 +1,5 @@
 import '../styles/chat-panel.css'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Message } from './Message'
 import axios from 'axios'
 
@@ -17,6 +17,13 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
     }
   ])
   const [input, setInput] = useState('')
+  const chatBodyRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const el = chatBodyRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
+  }, [messages])
 
   async function sendMessage() {
     if (!input.trim()) return
@@ -58,7 +65,7 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
         </div>
       </header>
 
-      <div className="chat-body">
+      <div className="chat-body" ref={chatBodyRef}>
         {messages.map((msg, idx) => (
           <div key={idx} className={`chat-bubble chat-bubble--${msg.role}`}>
             {msg.content}

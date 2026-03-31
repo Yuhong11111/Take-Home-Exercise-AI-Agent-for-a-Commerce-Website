@@ -5,7 +5,9 @@
   box-shadow: 0 18px 40px -32px rgba(15, 23, 42, 0.5);
   display: grid;
   grid-template-rows: auto 1fr auto;
-  min-height: 520px;
+  height: 520px;
+  max-height: 70vh;
+  overflow: hidden;
 }
 
 .chat-header {
@@ -57,6 +59,7 @@
   flex-direction: column;
   gap: 14px;
   align-items: flex-start;
+  overflow-y: auto;
 }
 
 .chat-bubble {
