@@ -196,6 +196,28 @@
   cursor: pointer;
 }
 
+.chat-send:disabled,
+.chat-input:disabled,
+.chat-image:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.chat-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(148, 163, 184, 0.4);
+  border-top-color: #0f172a;
+  display: inline-block;
+  animation: chat-spin 0.8s linear infinite;
+}
+
+@keyframes chat-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .chat-page {
   max-width: 960px;
   margin: 0 auto;

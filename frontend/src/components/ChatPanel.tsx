@@ -26,6 +26,7 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
   const latestRequestId = useRef(0)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const imageInputRef = useRef<HTMLInputElement | null>(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const el = chatBodyRef.current
@@ -45,6 +46,8 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
   async function sendMessage() {
     const trimmed = input.trim()
     if (!trimmed && !imageFile) return
+    if (loading) return
+    setLoading(true)
 
     const imagePreviewUrl = imageFile ? URL.createObjectURL(imageFile) : undefined
     const userMessage = {
@@ -92,6 +95,10 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
         ...prev,
         { role: 'ai' as const, content: 'Sorry, something went wrong.' }
       ])
+    } finally {
+      if (requestId === latestRequestId.current) {
+        setLoading(false)
+      }
     }
   }
   return (
@@ -146,6 +153,13 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
             )}
           </div>
         ))}
+        {loading && (
+          <div className="chat-bubble chat-bubble--ai">
+            <div className="chat-bubble-text">
+              <span className="chat-spinner" aria-label="Loading" />
+            </div>
+          </div>
+        )}
       </div>
 
       <form
@@ -164,6 +178,7 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
             const file = e.target.files?.[0] ?? null
             setImageFile(file)
           }}
+          disabled={loading}
         />
         <input
           type="text"
@@ -171,9 +186,10 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
           className="chat-input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          disabled={loading}
         />
-        <button type="submit" className="chat-send">
-          Send
+        <button type="submit" className="chat-send" disabled={loading}>
+          {loading ? 'Sending...' : 'Send'}
         </button>
       </form>
     </section>
