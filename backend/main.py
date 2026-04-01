@@ -1,7 +1,13 @@
+from pathlib import Path
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api import chat
+# Load environment variables (e.g., OPENAI_API_KEY) before importing modules that use them.
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+
+from api import chat, products
 
 app = FastAPI(title="Commerce Backend")
 
@@ -23,3 +29,4 @@ def health_check() -> dict:
     return {"status": "ok"}
 
 app.include_router(chat.router)
+app.include_router(products.router)

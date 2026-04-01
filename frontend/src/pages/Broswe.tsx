@@ -1,62 +1,64 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import ChatPanel from '../components/ChatPanel'
 import '../styles/browser.css'
+import axios from 'axios'
 
 type Product = {
   id: number
   name: string
-  price: string
+  price: number
   category: string
   tag: string
+  image_url?: string | null
 }
 
 export default function Browse() {
   const [showChat, setShowChat] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
+  const [search, setSearch] = useState('')
+  const [activeCategory, setActiveCategory] = useState('All')
 
-  const products: Product[] = [
-    {
-      id: 1,
-      name: 'Lumen Desk Lamp',
-      price: '$98',
-      category: 'Lighting',
-      tag: 'Best Seller'
-    },
-    {
-      id: 2,
-      name: 'Harbor Sofa',
-      price: '$1,240',
-      category: 'Living',
-      tag: 'New'
-    },
-    {
-      id: 3,
-      name: 'Slate Coffee Table',
-      price: '$420',
-      category: 'Living',
-      tag: 'Limited'
-    },
-    {
-      id: 4,
-      name: 'Arc Wall Mirror',
-      price: '$160',
-      category: 'Decor',
-      tag: 'Popular'
-    },
-    {
-      id: 5,
-      name: 'Studio Task Chair',
-      price: '$280',
-      category: 'Office',
-      tag: 'Ergonomic'
-    },
-    {
-      id: 6,
-      name: 'Cloud Bedside Table',
-      price: '$190',
-      category: 'Bedroom',
-      tag: 'Soft Touch'
+  useEffect(() => {
+    let mounted = true
+    async function fetchProducts() {
+      try {
+        const res = await axios.get<Product[]>('http://localhost:8000/products')
+        if (mounted) setProducts(res.data)
+      } catch (err) {
+        console.error('Failed to load products', err)
+      }
     }
-  ]
+    fetchProducts()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const categories = useMemo(() => {
+    const unique = new Set(products.map((p) => p.category))
+    return ['All', ...Array.from(unique)]
+  }, [products])
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesCategory = activeCategory === 'All' || product.category === activeCategory
+      const matchesSearch =
+        !search.trim() ||
+        product.name.toLowerCase().includes(search.trim().toLowerCase()) ||
+        product.tag.toLowerCase().includes(search.trim().toLowerCase())
+      return matchesCategory && matchesSearch
+    })
+  }, [activeCategory, products, search])
+
+  const currency = useMemo(
+    () =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0
+      }),
+    []
+  )
 
   const layoutClass = showChat ? 'browser-layout browser-layout--split' : 'browser-layout'
   const gridClass = showChat ? 'product-grid product-grid--single' : 'product-grid'
@@ -72,13 +74,24 @@ export default function Browse() {
       </header>
 
       <section className="browser-toolbar">
-        <input type="text" placeholder="Search products..." className="browser-search" />
+        <input
+          type="text"
+          placeholder="Search products..."
+          className="browser-search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
         <div className="browser-chips">
-          <button type="button" className="browser-chip">All</button>
-          <button type="button" className="browser-chip">Living</button>
-          <button type="button" className="browser-chip">Lighting</button>
-          <button type="button" className="browser-chip">Office</button>
-          <button type="button" className="browser-chip">Decor</button>
+          {categories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              className={`browser-chip${activeCategory === category ? ' browser-chip--active' : ''}`}
+              onClick={() => setActiveCategory(category)}
+            >
+              {category}
+            </button>
+          ))}
         </div>
         <button type="button" onClick={() => setShowChat(true)} className="browser-help">
           Ask AI for help
@@ -87,13 +100,19 @@ export default function Browse() {
 
       <section className={layoutClass}>
         <div className={gridClass}>
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <article key={product.id} className="product-card">
-              <div className="product-media">Product Image</div>
+              <div className="product-media">
+                {product.image_url ? (
+                  <img src={product.image_url} alt={product.name} />
+                ) : (
+                  'Product Image'
+                )}
+              </div>
               <div className="product-meta">
                 <div className="product-title-row">
                   <h3 className="product-title">{product.name}</h3>
-                  <span className="product-price">{product.price}</span>
+                  <span className="product-price">{currency.format(product.price)}</span>
                 </div>
                 <p className="product-category">{product.category}</p>
                 <span className="product-tag">{product.tag}</span>

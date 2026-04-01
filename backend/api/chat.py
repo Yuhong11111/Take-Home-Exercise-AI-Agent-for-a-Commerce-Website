@@ -1,9 +1,12 @@
 from fastapi import APIRouter
 from typing import Literal
+from openai import OpenAI
 
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/chat", tags=["ai"])
+
+client = OpenAI()  # Initialize OpenAI client 
 
 class ChatMessage(BaseModel):
     role: Literal["user", "ai"]
