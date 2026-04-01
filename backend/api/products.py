@@ -5,6 +5,8 @@ from typing import Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+# This module provides a simple API to list products from a CSV file. In a real application, this would likely be replaced with a database.
+
 router = APIRouter(prefix="/products", tags=["products"])
 
 DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "products.csv"

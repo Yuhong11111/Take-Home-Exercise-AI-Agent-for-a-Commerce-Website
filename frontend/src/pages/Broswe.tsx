@@ -18,6 +18,7 @@ export default function Browse() {
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState('All')
 
+  // Fetch products on mount
   useEffect(() => {
     let mounted = true
     async function fetchProducts() {
@@ -34,13 +35,16 @@ export default function Browse() {
     }
   }, [])
 
+  // Derive unique categories from products for filter chips
   const categories = useMemo(() => {
     const unique = new Set(products.map((p) => p.category))
     return ['All', ...Array.from(unique)]
   }, [products])
 
+  // Filter products based on active category and search term
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
+      // check if product matches active category (or if "All" is selected) and if it matches the search term in name or tag
       const matchesCategory = activeCategory === 'All' || product.category === activeCategory
       const matchesSearch =
         !search.trim() ||
@@ -50,6 +54,7 @@ export default function Browse() {
     })
   }, [activeCategory, products, search])
 
+  // Format currency
   const currency = useMemo(
     () =>
       new Intl.NumberFormat('en-US', {
@@ -60,6 +65,7 @@ export default function Browse() {
     []
   )
 
+  // Determine layout classes based on whether chat is open
   const layoutClass = showChat ? 'browser-layout browser-layout--split' : 'browser-layout'
   const gridClass = showChat ? 'product-grid product-grid--single' : 'product-grid'
 
@@ -87,7 +93,7 @@ export default function Browse() {
               key={category}
               type="button"
               className={`browser-chip${activeCategory === category ? ' browser-chip--active' : ''}`}
-              onClick={() => setActiveCategory(category)}
+              onClick={() => setActiveCategory(category)} // Toggle category filter on click
             >
               {category}
             </button>
