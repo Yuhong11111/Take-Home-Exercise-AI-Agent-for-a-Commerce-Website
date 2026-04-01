@@ -23,7 +23,8 @@ export default function Browse() {
     let mounted = true
     async function fetchProducts() {
       try {
-        const res = await axios.get<Product[]>('http://localhost:8000/products')
+        const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000"
+        const res = await axios.get<Product[]>(`${apiBaseUrl}/products`)
         if (mounted) setProducts(res.data)
       } catch (err) {
         console.error('Failed to load products', err)

@@ -77,7 +77,8 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
         formData.append('image', imageFile)
       }
 
-      const res = await axios.post('http://localhost:8000/chat', formData, {
+      const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000"
+      const res = await axios.post(`${apiBaseUrl}/chat`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       const data = res.data as { reply: string; products?: Product[] }
