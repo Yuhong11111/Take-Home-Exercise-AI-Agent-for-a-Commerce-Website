@@ -24,6 +24,8 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
   const [input, setInput] = useState('')
   const chatBodyRef = useRef<HTMLDivElement | null>(null)
   const latestRequestId = useRef(0)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const imageInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     const el = chatBodyRef.current
@@ -32,9 +34,15 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
   }, [messages])
 
   async function sendMessage() {
-    if (!input.trim()) return
+    const trimmed = input.trim()
+    if (!trimmed && !imageFile) return
 
-    const userMessage = { role: 'user' as const, content: input.trim() }
+    const imagePreviewUrl = imageFile ? URL.createObjectURL(imageFile) : undefined
+    const userMessage = {
+      role: 'user' as const,
+      content: trimmed || 'Sent an image.',
+      imageUrl: imagePreviewUrl
+    }
     // add user message to state immediately for responsiveness
     const updateMessages = [...messages, userMessage]
     setMessages((prev) => [...prev, userMessage])
@@ -42,13 +50,23 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
     // Add user message
 
     setInput('')
+    setImageFile(null)
+    if (imageInputRef.current) {
+      imageInputRef.current.value = ''
+    }
 
     const requestId = ++latestRequestId.current
 
     // Send to backend
     try {
-      const res = await axios.post('http://localhost:8000/chat', {
-        messages: getMessages(updateMessages)
+      const formData = new FormData()
+      formData.append('messages_json', JSON.stringify({ messages: getMessages(updateMessages) }))
+      if (imageFile) {
+        formData.append('image', imageFile)
+      }
+
+      const res = await axios.post('http://localhost:8000/chat', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
       const data = res.data
       // console.log('Chat response:', data)
@@ -82,7 +100,10 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
       <div className="chat-body" ref={chatBodyRef}>
         {messages.map((msg, idx) => (
           <div key={idx} className={`chat-bubble chat-bubble--${msg.role}`}>
-            {msg.content}
+            <div className="chat-bubble-text">{msg.content}</div>
+            {msg.imageUrl && (
+              <img className="chat-bubble-image" src={msg.imageUrl} alt="Uploaded preview" />
+            )}
           </div>
         ))}
       </div>
@@ -94,6 +115,16 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
           void sendMessage()
         }}
       >
+        <input
+          type="file"
+          accept="image/*"
+          className="chat-image"
+          ref={imageInputRef}
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null
+            setImageFile(file)
+          }}
+        />
         <input
           type="text"
           placeholder="Search or ask a question..."

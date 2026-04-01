@@ -69,7 +69,21 @@
   font-size: 14px;
   width: fit-content;
   display: inline-flex;
+  flex-direction: column;
+  gap: 10px;
   align-self: flex-start;
+}
+
+.chat-bubble-text {
+  white-space: pre-wrap;
+}
+
+.chat-bubble-image {
+  width: 220px;
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  object-fit: cover;
 }
 
 .chat-bubble--ai {
@@ -89,6 +103,12 @@
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.chat-image {
+  width: 120px;
+  font-size: 12px;
+  color: #475569;
 }
 
 .chat-input {
