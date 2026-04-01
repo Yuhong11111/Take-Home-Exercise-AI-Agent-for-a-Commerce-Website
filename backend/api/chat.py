@@ -117,6 +117,9 @@ def request_model_reply(
 ) -> str:
     model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
+    # Render may run against an SDK build where `client.responses` is unavailable.
+    # Prefer the Responses API when present, but fall back to chat completions so
+    # `/chat` does not crash with `'OpenAI' object has no attribute 'responses'`.
     if hasattr(client, "responses"):
         response = client.responses.create(
             model=model,

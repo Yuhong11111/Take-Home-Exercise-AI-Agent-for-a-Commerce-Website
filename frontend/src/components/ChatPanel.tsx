@@ -82,7 +82,7 @@ export default function ChatPanel({ title = 'Ask the AI', onClose }: ChatPanelPr
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       const data = res.data as { reply: string; products?: Product[] }
-      console.log('Chat response:', data.products)
+      // console.log('Chat response:', data.products)
       // console.log('Chat response:', data)
       if (requestId !== latestRequestId.current) return
       setMessages((prev) => [
