@@ -1,0 +1,17 @@
+.DS_Store
+
+# Env
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+dist/
+build/
+
+# Logs
+*.log
