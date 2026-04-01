@@ -89,6 +89,60 @@ def build_input_messages(messages: list[ChatMessage], image_file_id: Optional[st
     return input_messages
 
 
+def build_chat_completion_messages(
+    messages: list[ChatMessage],
+    system_prompt: str,
+    has_image: bool,
+) -> list[dict]:
+    completion_messages: list[dict] = [{"role": "system", "content": system_prompt}]
+    for idx, msg in enumerate(messages):
+        role = "assistant" if msg.role == "ai" else msg.role
+        content = msg.content
+        if has_image and idx == len(messages) - 1 and role == "user":
+            content = (
+                f"{content}\n\n"
+                "The user also uploaded an image. If visual analysis is unavailable, say that image "
+                "analysis is temporarily unavailable and continue helping from the text context."
+            )
+        completion_messages.append({"role": role, "content": content})
+    return completion_messages
+
+
+def request_model_reply(
+    client: OpenAI,
+    payload: ChatRequest,
+    system_prompt: str,
+    image_file_id: Optional[str],
+    has_image: bool,
+) -> str:
+    model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+    if hasattr(client, "responses"):
+        response = client.responses.create(
+            model=model,
+            text={
+                "format": {
+                    "type": "json_schema",
+                    "name": "chat_response",
+                    "strict": True,
+                    "schema": build_response_schema(),
+                }
+            },
+            input=[
+                {"role": "system", "content": [{"type": "input_text", "text": system_prompt}]},
+                *build_input_messages(payload.messages, image_file_id),
+            ],
+        )
+        return response.output_text or ""
+
+    response = client.chat.completions.create(
+        model=model,
+        response_format={"type": "json_object"},
+        messages=build_chat_completion_messages(payload.messages, system_prompt, has_image),
+    )
+    return response.choices[0].message.content or ""
+
+
 
 @router.post("", response_model=ChatResponse)
 def ai_chat(
@@ -113,8 +167,9 @@ def ai_chat(
         reply = "AI is not configured. Please set OPENAI_API_KEY."
         return ChatResponse(reply=reply, products=[])
 
+    has_image = image is not None
     image_file_id: Optional[str] = None
-    if image is not None:
+    if image is not None and hasattr(client, "responses"):
         try:
             file_bytes = image.file.read()
             uploaded = client.files.create(
@@ -125,23 +180,17 @@ def ai_chat(
         except OpenAIError:
             image_file_id = None
 
-    response = client.responses.create(
-        model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-        text={
-            "format": {
-                "type": "json_schema",
-                "name": "chat_response",
-                "strict": True,
-                "schema": build_response_schema(),
-            }
-        },
-        input=[
-            {"role": "system", "content": [{"type": "input_text", "text": system_prompt}]},
-            *build_input_messages(payload.messages, image_file_id),
-        ],
-    )
+    try:
+        reply_text = request_model_reply(
+            client=client,
+            payload=payload,
+            system_prompt=system_prompt,
+            image_file_id=image_file_id,
+            has_image=has_image,
+        )
+    except OpenAIError as exc:
+        raise HTTPException(status_code=502, detail=f"OpenAI request failed: {exc}")
 
-    reply_text = response.output_text or ""
     reply, product_ids = parse_model_json(reply_text)
     # find products that match the recommended ids, and return them in the response
     product_map = {product.id: product for product in products}
