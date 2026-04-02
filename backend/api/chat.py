@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from typing import Literal, Optional
 
@@ -9,6 +10,7 @@ from pydantic import BaseModel, ValidationError
 from api.products import Product, load_products
 
 router = APIRouter(prefix="/chat", tags=["ai"])
+logger = logging.getLogger(__name__)
 
 class ChatMessage(BaseModel):
     role: Literal["user", "ai"]
@@ -180,7 +182,8 @@ def ai_chat(
                 purpose="vision",
             )  # upload image to OpenAI for vision processing, get file_id for reference in the model input
             image_file_id = uploaded.id
-        except OpenAIError:
+        except OpenAIError as exc:
+            logger.warning("Image upload to OpenAI failed: %s", exc)
             image_file_id = None
 
     try:
@@ -192,6 +195,15 @@ def ai_chat(
             has_image=has_image,
         )
     except OpenAIError as exc:
+        logger.warning("OpenAI chat request failed. has_image=%s error=%s", has_image, exc)
+        if has_image:
+            return ChatResponse(
+                reply=(
+                    "I could not confidently analyze that image. Please try a clearer image or "
+                    "describe what you are looking for, and I can still recommend products from the catalog."
+                ),
+                products=[],
+            )
         raise HTTPException(status_code=502, detail=f"OpenAI request failed: {exc}")
 
     reply, product_ids = parse_model_json(reply_text)
