@@ -17,6 +17,8 @@ This project is a simple commerce assistant that combines a product browser with
 2. Text recommendation: users can describe preferences, budget, or category, and the agent recommends up to three matching products from the catalog.
 3. Image-based search: users can upload an image, and the agent analyzes the image and returns the closest catalog matches when possible.
 
+Current UI note: the `View details` button is present in the product cards, but the detailed product page or modal is not implemented yet.
+
 ### Architecture summary
 
 - the frontend is a React + Vite single-page app that renders the product browser and the AI chat panel
