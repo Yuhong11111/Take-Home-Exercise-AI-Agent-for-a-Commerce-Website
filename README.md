@@ -124,7 +124,7 @@ Frontend variables:
 
 A documented set of backend API endpoints for the commerce agent.
 
-- Repo API document: [API_DOCS.md](/Users/yuhong/Desktop/Take-Home-Exercise-AI-Agent-for-a-Commerce-Website/API_DOCS.md)
+- Repo API document: API_DOCS.md (in the repo)
 - Health check: `GET /health`
 - Product catalog: `GET /products`
 - AI chat: `POST /chat`
